@@ -73,21 +73,21 @@ public class ChecksumInputFormat implements InputFormat {
         }
     }
 
-    public class FileReader implements RecordReader<Text, Text> {
+    public class ChecksumFileReader implements RecordReader<Text, Text> {
         PathInputSplit inputSplit;
         int idx = 0;
 
-        public FileReader(PathInputSplit inputSplit) {
+        public ChecksumFileReader(PathInputSplit inputSplit) {
             this.inputSplit = inputSplit;
         }
 
         @Override
         public boolean next(Text filename1, Text filename2) throws IOException {
-            if (inputSplit.getLength() <= this.idx)
+            if (inputSplit.getLength() <= idx)
                 return false;
 
-            filename1.set(this.inputSplit.paths.get(this.idx).path.toString());
-            filename2.set(this.inputSplit.paths.get(this.idx).path.toString());
+            filename1.set(inputSplit.paths.get(idx).path.toString());
+            filename2.set(inputSplit.paths.get(idx).path.toString());
             idx += 1;
 
             return true;
@@ -105,7 +105,7 @@ public class ChecksumInputFormat implements InputFormat {
 
         @Override
         public long getPos() throws IOException {
-            return this.idx;
+            return idx;
         }
 
         @Override
@@ -115,7 +115,7 @@ public class ChecksumInputFormat implements InputFormat {
 
         @Override
         public float getProgress() throws IOException {
-            return ((float) this.idx / (float) this.inputSplit.getLength());
+            return ((float) idx / (float) inputSplit.getLength());
         }
     }
 
@@ -135,7 +135,7 @@ public class ChecksumInputFormat implements InputFormat {
         Arrays.sort(statuses, new Comparator<FileStatus>() {
             @Override
             public int compare(FileStatus fileStatus, FileStatus fileStatus2) {
-                Long size = new Long(fileStatus.getLen());
+                Long size = fileStatus.getLen();
                 return size.compareTo(fileStatus2.getLen());
             }
         });
@@ -157,6 +157,6 @@ public class ChecksumInputFormat implements InputFormat {
 
     @Override
     public RecordReader getRecordReader(InputSplit inputSplit, JobConf entries, Reporter reporter) throws IOException {
-        return new FileReader((PathInputSplit) inputSplit);
+        return new ChecksumFileReader((PathInputSplit) inputSplit);
     }
 }

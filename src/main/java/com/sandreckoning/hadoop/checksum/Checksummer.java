@@ -13,6 +13,7 @@ import org.apache.hadoop.mapred.Reporter;
 import java.io.IOException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.zip.Adler32;
 
 public class Checksummer extends Configured implements Mapper<Text, Text, Text, Text> {
     public static final int BUFSIZE = 16 * 1024 * 1024;
@@ -38,6 +39,8 @@ public class Checksummer extends Configured implements Mapper<Text, Text, Text, 
                     OutputCollector<Text, Text> collector,
                     Reporter reporter) throws IOException {
         MessageDigest digest = null;
+        Adler32 adler32 = new Adler32();
+
         try {
             digest = MessageDigest.getInstance("MD5");
 
@@ -51,10 +54,12 @@ public class Checksummer extends Configured implements Mapper<Text, Text, Text, 
 
         while (count > 0) {
             digest.update(buf, 0, count);
-            inputStream.read(buf);
+            adler32.update(buf, 0, count);
+            count = inputStream.read(buf);
         }
 
-        System.out.println("File " + filename.toString() + " has digest " + digest.toString());
-        collector.collect(filename, new Text(digest.toString()));
+        String formatted = String.format("%s,%s", digest.toString(), adler32.toString());
+        System.out.println("File " + filename.toString() + " has digests " + formatted);
+        collector.collect(filename, new Text(formatted));
     }
 }
