@@ -6,7 +6,6 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapred.JobConf;
-import org.apache.hadoop.mapred.Mapper;
 import org.apache.hadoop.mapred.OutputCollector;
 import org.apache.hadoop.mapred.Reporter;
 
@@ -15,7 +14,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.zip.Adler32;
 
-public class Checksummer extends Configured implements Mapper<Text, Text, Text, Text> {
+public class Mapper extends Configured implements org.apache.hadoop.mapred.Mapper<Text, Text, Text, Text> {
     public static final int BUFSIZE = 16 * 1024 * 1024;
     private FileSystem fs;
 

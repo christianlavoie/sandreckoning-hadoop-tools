@@ -16,8 +16,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Vector;
 
-public class ChecksumInputFormat implements InputFormat {
-
+public class RawFileInputFormat implements InputFormat {
     public class ChecksumFileReader implements RecordReader<Text, Text> {
         PathInputSplit inputSplit;
         int idx = 0;
