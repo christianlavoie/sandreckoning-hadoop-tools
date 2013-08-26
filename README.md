@@ -4,4 +4,4 @@ A few simple tools to go with Hadoop 1.2.1. Currently includes a checksummer MR 
 
 To use:
 
-hadoop jar /mnt/sand-reckoning-checksum-1.0.jar com.sandreckoning.hadoop.checksum.ChecksumDriver
+    hadoop jar /mnt/sand-reckoning-checksum-1.0.jar com.sandreckoning.hadoop.checksum.ChecksumDriver
