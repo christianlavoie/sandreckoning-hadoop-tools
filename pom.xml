@@ -8,7 +8,7 @@
     <artifactId>sand-reckoning-checksum</artifactId>
     <version>1.0</version>
 
-    <name>Maven Quick Start Archetype</name>
+    <name>Sand Reckoning Hadoop Tools</name>
     <url>http://www.sandreckoning.com/projects/checksum</url>
 
     <dependencies>

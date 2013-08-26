@@ -18,15 +18,12 @@ public class ChecksumDriver extends Configured implements Tool {
         Configuration conf = getConf();
 
         JobConf job = new JobConf(conf, ChecksumDriver.class);
-        job.setMapperClass(ChecksumMapper.class);
-        job.setReducerClass(ChecksumReducer.class);
         job.setInputFormat(RawFileInputFormat.class);
-        job.setOutputValueClass(Text.class);
-        job.setOutputKeyClass(Text.class);
-
-        // CSV format. Close enough.
+        job.setMapperClass(ChecksumMapper.class);
         job.setOutputFormat(TextOutputFormat.class);
-        conf.set("mapred.textoutputformat.separatorText", ",");
+        job.setOutputKeyClass(Text.class);
+        job.setOutputValueClass(Text.class);
+        job.setReducerClass(ChecksumReducer.class);
 
         FileOutputFormat.setOutputPath(job, new Path("/checksum-" + System.currentTimeMillis()));
         JobClient.runJob(job);
