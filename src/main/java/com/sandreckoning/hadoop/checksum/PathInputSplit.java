@@ -19,7 +19,19 @@ class PathInputSplit implements InputSplit {
         }
     }
 
-    public Vector<PathInputSplitPart> paths = new Vector<PathInputSplitPart>();
+    private Vector<PathInputSplitPart> paths = new Vector<PathInputSplitPart>();
+
+    public int numPaths() {
+        return paths.size();
+    }
+
+    public Path getPath(int idx) {
+        return paths.get(idx).path;
+    }
+
+    public void insertPath(Path path, long len) {
+        paths.add(new PathInputSplitPart(path, len));
+    }
 
     @Override
     public long getLength() throws IOException {

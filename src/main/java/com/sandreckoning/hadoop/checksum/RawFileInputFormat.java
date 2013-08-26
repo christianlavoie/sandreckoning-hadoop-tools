@@ -27,11 +27,11 @@ public class RawFileInputFormat implements InputFormat {
 
         @Override
         public boolean next(Text filename1, Text filename2) throws IOException {
-            if (inputSplit.paths.size() <= idx)
+            if (inputSplit.numPaths() <= idx)
                 return false;
 
-            filename1.set(inputSplit.paths.get(idx).path.toString());
-            filename2.set(inputSplit.paths.get(idx).path.toString());
+            filename1.set(inputSplit.getPath(idx).toString());
+            filename2.set(inputSplit.getPath(idx).toString());
 
             idx += 1;
 
@@ -99,7 +99,7 @@ public class RawFileInputFormat implements InputFormat {
                                              status.getLen(),
                                              splits.size()));
 
-            splits.lastElement().paths.add(new PathInputSplit.PathInputSplitPart(status.getPath(), status.getLen()));
+            splits.lastElement().insertPath(status.getPath(), status.getLen());
 
             if (splits.lastElement().getLength() > chunkSize)
                 splits.add(new PathInputSplit());

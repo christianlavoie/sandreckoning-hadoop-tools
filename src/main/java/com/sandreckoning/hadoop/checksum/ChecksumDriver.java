@@ -21,9 +21,12 @@ public class ChecksumDriver extends Configured implements Tool {
         job.setMapperClass(ChecksumMapper.class);
         job.setReducerClass(ChecksumReducer.class);
         job.setInputFormat(RawFileInputFormat.class);
-        job.setOutputFormat(TextOutputFormat.class);
         job.setOutputValueClass(Text.class);
         job.setOutputKeyClass(Text.class);
+
+        // CSV format. Close enough.
+        job.setOutputFormat(TextOutputFormat.class);
+        conf.set("mapred.textoutputformat.separatorText", ",");
 
         FileOutputFormat.setOutputPath(job, new Path("/checksum-" + System.currentTimeMillis()));
         JobClient.runJob(job);
