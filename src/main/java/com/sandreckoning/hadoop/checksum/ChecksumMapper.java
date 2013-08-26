@@ -35,6 +35,7 @@ class ChecksumMapper extends Configured implements Mapper<Text, Text, Text, Text
             this.conf = conf;
 
         } catch (IOException e) {
+            //noinspection ThrowableInstanceNeverThrown
             new RuntimeException(e);
         }
     }
@@ -56,6 +57,7 @@ class ChecksumMapper extends Configured implements Mapper<Text, Text, Text, Text
                 digests.put(algo, MessageDigest.getInstance(algo));
 
         } catch (NoSuchAlgorithmException e) {
+            //noinspection ThrowableInstanceNeverThrown
             new RuntimeException(e);
         }
 

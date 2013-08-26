@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.util.Vector;
 
 class PathInputSplit implements InputSplit {
-    static class PathInputSplitPart {
+    private static class PathInputSplitPart {
         public final Path path;
         public final long length;
 
