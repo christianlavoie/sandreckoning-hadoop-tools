@@ -12,7 +12,7 @@ import org.apache.hadoop.mapred.RecordReader;
 import org.apache.hadoop.mapred.Reporter;
 
 import java.io.IOException;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.Vector;
 
@@ -27,11 +27,12 @@ public class RawFileInputFormat implements InputFormat {
 
         @Override
         public boolean next(Text filename1, Text filename2) throws IOException {
-            if (inputSplit.getLength() <= idx)
+            if (inputSplit.paths.size() <= idx)
                 return false;
 
             filename1.set(inputSplit.paths.get(idx).path.toString());
             filename2.set(inputSplit.paths.get(idx).path.toString());
+
             idx += 1;
 
             return true;
@@ -65,18 +66,46 @@ public class RawFileInputFormat implements InputFormat {
 
     @Override
     public InputSplit[] getSplits(JobConf conf, int numSplits) throws IOException {
-        FileSystem fs = FileSystem.get(conf);
-        FileStatus[] statuses = fs.listStatus(new Path("/"), new PathFilter() {
-            @Override public boolean accept(Path path) { return true; }
-        });
+        final FileSystem fs = FileSystem.get(conf);
+        final Vector<FileStatus> files =  getAllFilesStatuses(fs);
 
         long totalSize = 0;
-        for (FileStatus status : statuses)
+        for (FileStatus status : files)
             totalSize += status.getLen();
 
-        long chunkSize = totalSize / numSplits;
+        Vector<PathInputSplit> splits = getPathInputSplits(files, totalSize / numSplits);
+        if (splits.size() == 0) {
+            System.out.println("Empty fileset, aborting!");
+            throw new RuntimeException("Cannot process, did not find any files to checksum");
+        }
 
-        Arrays.sort(statuses, new Comparator<FileStatus>() {
+        InputSplit[] arr = new InputSplit[0];
+        arr = splits.toArray(arr);
+        return arr;
+    }
+
+    private Vector<PathInputSplit> getPathInputSplits(Vector<FileStatus> files, long chunkSize)
+      throws IOException {
+        Vector<PathInputSplit> splits = new Vector<PathInputSplit>();
+        splits.add(new PathInputSplit());
+        for (FileStatus status : files) {
+            if (status.isDir()) {
+                System.out.println("Skipping directory: " + status.getPath().toString());
+                continue;
+            }
+
+            System.out.println(String.format("Adding file %s of length %d to split %d",
+                                             status.getPath().toString(),
+                                             status.getLen(),
+                                             splits.size()));
+
+            splits.lastElement().paths.add(new PathInputSplit.PathInputSplitPart(status.getPath(), status.getLen()));
+
+            if (splits.lastElement().getLength() > chunkSize)
+                splits.add(new PathInputSplit());
+        }
+
+        Collections.sort(files, new Comparator<FileStatus>() {
             @Override
             public int compare(FileStatus fileStatus, FileStatus fileStatus2) {
                 Long size = fileStatus.getLen();
@@ -84,23 +113,40 @@ public class RawFileInputFormat implements InputFormat {
             }
         });
 
-        Vector<PathInputSplit> splits = new Vector<PathInputSplit>();
-        splits.add(new PathInputSplit());
-        for (FileStatus status : statuses) {
-            splits.lastElement().paths.add(new PathInputSplitPart(status.getPath(), status.getLen()));
-
-            if (splits.lastElement().getLength() > chunkSize)
-                splits.add(new PathInputSplit());
-        }
-
-        while (splits.lastElement().getLength() == 0)
+        while (splits.size() > 0 && splits.lastElement().getLength() == 0)
             splits.remove(splits.lastElement());
 
-        return (InputSplit[]) splits.toArray();
+        return splits;
+    }
+
+    private Vector<FileStatus> getAllFilesStatuses(final FileSystem fs) throws IOException {
+        final Vector<FileStatus> files = new Vector<FileStatus>();
+        fs.listStatus(new Path("/"), new PathFilter() {
+            @Override public boolean accept(Path path) {
+                try {
+                    FileStatus status = fs.getFileStatus(path);
+                    if (status.isDir()) {
+                        fs.listStatus(path, this);
+                        return false;
+                    }
+
+                    files.add(status);
+                    return true;
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+                return false;
+            }
+        });
+
+        return files;
     }
 
     @Override
-    public RecordReader getRecordReader(InputSplit inputSplit, JobConf entries, Reporter reporter) throws IOException {
+    public RecordReader getRecordReader(InputSplit inputSplit, JobConf entries, Reporter reporter)
+      throws IOException {
         return new ChecksumFileReader((PathInputSplit) inputSplit);
     }
 }

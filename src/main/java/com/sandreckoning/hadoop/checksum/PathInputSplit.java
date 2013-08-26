@@ -9,7 +9,17 @@ import java.io.IOException;
 import java.util.Vector;
 
 class PathInputSplit implements InputSplit {
-    public Vector<PathInputSplitPart> paths;
+    static class PathInputSplitPart {
+        public Path path;
+        public long length;
+
+        public PathInputSplitPart(Path path, long length) {
+            this.path = path;
+            this.length = length;
+        }
+    }
+
+    public Vector<PathInputSplitPart> paths = new Vector<PathInputSplitPart>();
 
     @Override
     public long getLength() throws IOException {
@@ -29,6 +39,7 @@ class PathInputSplit implements InputSplit {
     @Override
     public void write(DataOutput dataOutput) throws IOException {
         dataOutput.writeInt(paths.size());
+
         for (PathInputSplitPart part : paths) {
             byte[] bytes = part.path.toString().getBytes();
             dataOutput.writeInt(bytes.length);
@@ -39,14 +50,17 @@ class PathInputSplit implements InputSplit {
 
     @Override
     public void readFields(DataInput dataInput) throws IOException {
-        paths = new Vector<PathInputSplitPart>();
+        int vectorSize = dataInput.readInt();
+        paths = new Vector<PathInputSplitPart>(vectorSize);
 
-        int size = dataInput.readInt();
-        for (int i = 0; i < size; i++) {
-            byte[] bytes = new byte[dataInput.readInt()];
+        for (int i = 1; i < vectorSize; i++) {
+            int size = dataInput.readInt();
+
+            byte[] bytes = new byte[size];
             dataInput.readFully(bytes);
-            int length = dataInput.readInt();
             Path path = new Path(new String(bytes));
+
+            long length = dataInput.readLong();
             paths.add(new PathInputSplitPart(path, length));
         }
     }
