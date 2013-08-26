@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.zip.Adler32;
+import java.util.zip.CRC32;
 
 public class ChecksumMapper extends Configured implements Mapper<Text, Text, Text, Text> {
     public static final int BUFSIZE = 16 * 1024 * 1024;
@@ -42,6 +43,7 @@ public class ChecksumMapper extends Configured implements Mapper<Text, Text, Tex
 
         MessageDigest digest = null;
         Adler32 adler32 = new Adler32();
+        CRC32 crc32 = new CRC32();
 
         try {
             digest = MessageDigest.getInstance("MD5");
@@ -57,10 +59,11 @@ public class ChecksumMapper extends Configured implements Mapper<Text, Text, Tex
         while (count > 0) {
             digest.update(buf, 0, count);
             adler32.update(buf, 0, count);
+            crc32.update(buf, 0, count);
             count = inputStream.read(buf);
         }
 
-        String formatted = String.format("%s,%d", hex(digest.digest()), adler32.getValue());
+        String formatted = String.format("%s,%08X,%08X", hex(digest.digest()), adler32.getValue(), crc32.getValue());
         System.out.println("File " + filename.toString() + " has digests " + formatted);
         collector.collect(filename, new Text(formatted));
     }
