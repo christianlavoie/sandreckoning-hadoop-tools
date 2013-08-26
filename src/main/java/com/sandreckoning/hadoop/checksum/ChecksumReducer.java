@@ -9,7 +9,7 @@ import org.apache.hadoop.mapred.Reporter;
 import java.io.IOException;
 import java.util.Iterator;
 
-public class ChecksumReducer implements Reducer<Text, Text, Text, Text> {
+class ChecksumReducer implements Reducer<Text, Text, Text, Text> {
     @Override
     public void close() throws IOException { }
 

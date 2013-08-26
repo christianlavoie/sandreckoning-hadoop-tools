@@ -7,6 +7,7 @@ import org.apache.hadoop.fs.PathFilter;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapred.InputFormat;
 import org.apache.hadoop.mapred.InputSplit;
+import org.apache.hadoop.mapred.JobClient;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.RecordReader;
 import org.apache.hadoop.mapred.Reporter;
@@ -16,9 +17,9 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Vector;
 
-public class RawFileInputFormat implements InputFormat {
+class RawFileInputFormat implements InputFormat {
     public class ChecksumFileReader implements RecordReader<Text, Text> {
-        PathInputSplit inputSplit;
+        final PathInputSplit inputSplit;
         int idx = 0;
 
         public ChecksumFileReader(PathInputSplit inputSplit) {
@@ -72,6 +73,9 @@ public class RawFileInputFormat implements InputFormat {
         long totalSize = 0;
         for (FileStatus status : files)
             totalSize += status.getLen();
+
+        JobClient client = new JobClient(conf);
+        numSplits = client.getClusterStatus(true).getMaxMapTasks();
 
         Vector<PathInputSplit> splits = getPathInputSplits(files, totalSize / numSplits);
         if (splits.size() == 0) {

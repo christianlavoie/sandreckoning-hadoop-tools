@@ -10,8 +10,8 @@ import java.util.Vector;
 
 class PathInputSplit implements InputSplit {
     static class PathInputSplitPart {
-        public Path path;
-        public long length;
+        public final Path path;
+        public final long length;
 
         public PathInputSplitPart(Path path, long length) {
             this.path = path;
