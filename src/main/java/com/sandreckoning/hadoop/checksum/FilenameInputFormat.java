@@ -19,7 +19,7 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.Vector;
 
-class RawFileInputFormat implements InputFormat {
+class FilenameInputFormat implements InputFormat {
 
     @Override
     public InputSplit[] getSplits(JobConf conf, int numSplits) throws IOException {

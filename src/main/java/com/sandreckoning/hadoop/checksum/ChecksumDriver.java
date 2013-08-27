@@ -18,7 +18,7 @@ public class ChecksumDriver extends Configured implements Tool {
         Configuration conf = getConf();
 
         JobConf job = new JobConf(conf, ChecksumDriver.class);
-        job.setInputFormat(RawFileInputFormat.class);
+        job.setInputFormat(FilenameInputFormat.class);
         job.setMapperClass(ChecksumMapper.class);
         job.setOutputFormat(TextOutputFormat.class);
         job.setOutputKeyClass(Text.class);
