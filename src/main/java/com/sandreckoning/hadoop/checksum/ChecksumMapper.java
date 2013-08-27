@@ -4,6 +4,7 @@ import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.Mapper;
@@ -18,7 +19,7 @@ import java.util.TreeMap;
 import java.util.zip.Adler32;
 import java.util.zip.CRC32;
 
-class ChecksumMapper extends Configured implements Mapper<Text, Text, Text, Text> {
+class ChecksumMapper extends Configured implements Mapper<Text, NullWritable, Text, Text> {
     private FileSystem fs;
     private JobConf conf;
     private int bufsize;
@@ -42,10 +43,10 @@ class ChecksumMapper extends Configured implements Mapper<Text, Text, Text, Text
     }
 
     @Override
-    public void map(Text filename, Text filename2,
+    public void map(Text filename, NullWritable nullWritable,
                     OutputCollector<Text, Text> collector,
                     Reporter reporter) throws IOException {
-        System.out.println("Checksumming " + filename.toString() + " " + filename2.toString());
+        System.out.println("Checksumming " + filename.toString());
 
         String[] algorithms = conf.getStrings("checksum.algorithms", "SHA-512");
 

@@ -4,6 +4,7 @@ import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.PathFilter;
+import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapred.InputFormat;
 import org.apache.hadoop.mapred.InputSplit;
@@ -18,7 +19,7 @@ import java.util.Comparator;
 import java.util.Vector;
 
 class RawFileInputFormat implements InputFormat {
-    public class ChecksumFileReader implements RecordReader<Text, Text> {
+    public class ChecksumFileReader implements RecordReader<Text, NullWritable> {
         final PathInputSplit inputSplit;
         int idx = 0;
 
@@ -27,13 +28,11 @@ class RawFileInputFormat implements InputFormat {
         }
 
         @Override
-        public boolean next(Text filename1, Text filename2) throws IOException {
+        public boolean next(Text name, NullWritable nullWritable) throws IOException {
             if (inputSplit.numPaths() <= idx)
                 return false;
 
-            filename1.set(inputSplit.getPath(idx).toString());
-            filename2.set(inputSplit.getPath(idx).toString());
-
+            name.set(inputSplit.getPath(idx).toString());
             idx += 1;
 
             return true;
@@ -45,8 +44,8 @@ class RawFileInputFormat implements InputFormat {
         }
 
         @Override
-        public Text createValue() {
-            return new Text();
+        public NullWritable createValue() {
+            return NullWritable.get();
         }
 
         @Override
