@@ -75,7 +75,7 @@ class RawFileInputFormat implements InputFormat {
             totalSize += status.getLen();
 
         JobClient client = new JobClient(conf);
-        numSplits = client.getClusterStatus(true).getMaxMapTasks();
+        numSplits = client.getClusterStatus(true).getMaxMapTasks() * 3;
 
         Vector<PathInputSplit> splits = getPathInputSplits(files, totalSize / numSplits);
         if (splits.size() == 0) {

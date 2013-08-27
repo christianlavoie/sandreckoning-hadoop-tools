@@ -19,9 +19,9 @@ import java.util.zip.Adler32;
 import java.util.zip.CRC32;
 
 class ChecksumMapper extends Configured implements Mapper<Text, Text, Text, Text> {
-    private static final int BUFSIZE = 16 * 1024 * 1024;
     private FileSystem fs;
     private JobConf conf;
+    private int bufsize;
 
     @Override
     public void close() throws IOException {
@@ -31,8 +31,9 @@ class ChecksumMapper extends Configured implements Mapper<Text, Text, Text, Text
     @Override
     public void configure(JobConf conf) {
         try {
-            fs = FileSystem.get(conf);
+            this.fs = FileSystem.get(conf);
             this.conf = conf;
+            bufsize = Integer.parseInt(conf.get("checksum.bufsize", "67108864"));
 
         } catch (IOException e) {
             //noinspection ThrowableInstanceNeverThrown
@@ -62,7 +63,7 @@ class ChecksumMapper extends Configured implements Mapper<Text, Text, Text, Text
         }
 
         FSDataInputStream inputStream = fs.open(new Path(filename.toString()));
-        byte[] buf = new byte[BUFSIZE];
+        byte[] buf = new byte[bufsize];
         int count = inputStream.read(buf);
 
         while (count > 0) {
