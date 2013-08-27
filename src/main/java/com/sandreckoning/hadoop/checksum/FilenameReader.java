@@ -6,9 +6,9 @@ import org.apache.hadoop.mapred.RecordReader;
 
 import java.io.IOException;
 
-public class FilenameReader implements RecordReader<Text, NullWritable> {
-    final FilenameInputSplit inputSplit;
-    int idx = 0;
+class FilenameReader implements RecordReader<Text, NullWritable> {
+    private final FilenameInputSplit inputSplit;
+    private int idx = 0;
 
     public FilenameReader(FilenameInputSplit inputSplit) {
         this.inputSplit = inputSplit;

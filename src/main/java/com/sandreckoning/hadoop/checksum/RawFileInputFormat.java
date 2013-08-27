@@ -1,5 +1,6 @@
 package com.sandreckoning.hadoop.checksum;
 
+import org.apache.hadoop.fs.BlockLocation;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -14,6 +15,8 @@ import org.apache.hadoop.mapred.Reporter;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.Vector;
 
 class RawFileInputFormat implements InputFormat {
@@ -30,18 +33,16 @@ class RawFileInputFormat implements InputFormat {
         JobClient client = new JobClient(conf);
         numSplits = client.getClusterStatus(true).getMaxMapTasks() * 3;
 
-        Vector<FilenameInputSplit> splits = getPathInputSplits(files, totalSize / numSplits);
+        Vector<FilenameInputSplit> splits = getPathInputSplits(fs, files, totalSize / numSplits);
         if (splits.size() == 0) {
             System.out.println("Empty fileset, aborting!");
             throw new RuntimeException("Cannot process, did not find any files to checksum");
         }
 
-        InputSplit[] arr = new InputSplit[0];
-        arr = splits.toArray(arr);
-        return arr;
+        return splits.toArray(new InputSplit[splits.size()]);
     }
 
-    private Vector<FilenameInputSplit> getPathInputSplits(Vector<FileStatus> files, long chunkSize)
+    private Vector<FilenameInputSplit> getPathInputSplits(FileSystem fs, Vector<FileStatus> files, long chunkSize)
       throws IOException {
         Vector<FilenameInputSplit> splits = new Vector<FilenameInputSplit>();
         splits.add(new FilenameInputSplit());
@@ -56,7 +57,18 @@ class RawFileInputFormat implements InputFormat {
                                              status.getLen(),
                                              splits.size()));
 
-            splits.lastElement().insertPath(status.getPath(), status.getLen());
+            Set<String> hosts = new TreeSet<String>();
+
+            try {
+                for (BlockLocation location : fs.getFileBlockLocations(status, 0, status.getLen()))
+                    Collections.addAll(hosts, location.getHosts());
+
+            } catch (IOException e) {
+                //noinspection ThrowableInstanceNeverThrown
+                new RuntimeException(e);
+            }
+
+            splits.lastElement().insertPath(status.getPath(), hosts, status.getLen());
 
             if (splits.lastElement().getLength() > chunkSize)
                 splits.add(new FilenameInputSplit());
